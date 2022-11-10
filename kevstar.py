@@ -1,6 +1,7 @@
 import sys
 import pygame
 from button import Button
+from exceptions import TileNotFoundException
 
 
 class Tile:
@@ -11,7 +12,6 @@ class Tile:
         self.gcost = None
         self.hcost = None
         self.fcost = None
-        self.previous = None
         self.walkable = True
 
     def get_pos(self):
@@ -21,13 +21,6 @@ class Tile:
         self.gcost = gcost
         self.hcost = hcost
         self.fcost = gcost + hcost
-
-    def set_previous(self, tile):
-        self.previous = tile
-
-    def get_previous(self):
-        return self.previous
-
 
 class Grid:
     def __init__(self, grid_x, grid_y) -> None:
@@ -40,13 +33,13 @@ class Grid:
                 self.tiles.append(Tile(x, y))
 
     def get_tile(self, x, y):
-        for tile in self.tiles:
-            if tile.get_pos() == (x, y):
-                return tile
-        else:
-            return None
+        if x < 0 or y < 0 or x >= self.grid_x or y >= self.grid_y:
+            raise TileNotFoundException("Invalid tile index")
+        return self.tiles[x * self.grid_y + y]
 
-    def get_neighbors(self, tile):
+    def get_neighbors(self, tile : Tile):
+        if tile == None:
+            raise TileNotFoundException("Invalid tile specified")
         neighbors = []
         directions = [
             (0, 1),
@@ -58,21 +51,20 @@ class Grid:
             (-1, 1),
             (1, 1),
         ]
-        if tile != None:
-            tx, ty = tile.get_pos()
-            for dir in directions:
-                neighbor_x, neighbor_y = tx + dir[0], ty + dir[1]
+        tx, ty = tile.get_pos()
+        for d in directions:
+            neighbor_x, neighbor_y = tx + d[0], ty + d[1]
+            try:
                 neighbor = self.get_tile(neighbor_x, neighbor_y)
-                if neighbor != None:
-                    neighbors.append(neighbor)
-            return neighbors
-        else:
-            print("non real tile")
+            except TileNotFoundException:
+                continue
+            neighbors.append(neighbor)
+        return neighbors
+ 
 
-    def get_dist(self, tile_a, tile_b):
-        diff_x, diff_y = abs(tile_a.get_pos()[0] - tile_b.get_pos()[0]), abs(
-            tile_a.get_pos()[1] - tile_b.get_pos()[1]
-        )
+    def get_dist(self, tile_a : Tile, tile_b: Tile):
+        diff_x,= abs(tile_a.x - tile_b.x)
+        diff_y = abs(tile_a.y - tile_b.y)
         if diff_x > diff_y:
             return diff_y * 14 + (diff_x - diff_y) * 10
         else:

@@ -1,0 +1,2 @@
+class TileNotFoundException(Exception):
+    pass

@@ -1,2 +1,0 @@
-class TileNotFoundException(Exception):
-    pass

@@ -56,9 +56,8 @@ class Grid:
             if len(to_check) == 0:
                 raise UntraversablePathException("No valid path.")
             head = min(to_check, key=lambda x: x.fcost)
-            print(head)
         while head != None:
-            path.insert(0, head)
+            path.insert(0, head.get_pos())
             head = head.previous
         return path
     
@@ -88,6 +87,15 @@ class Grid:
 
     def is_cell_walkable(self, cell : Cell):
         return cell.get_pos() not in self.unwalkable_cells
+    
+    def add_unwalkable_cell(self, cell_pos):
+        self.unwalkable_cells.add(cell_pos)
+    
+    def remove_unwalkable_cell(self, cell_pos):
+        try:
+            self.unwalkable_cells.remove(cell_pos)
+        except KeyError:
+            print("tried removing invalid walls")
 
 def main():
     g = Grid(10, 10)
@@ -98,7 +106,7 @@ def main():
         g.unwalkable_cells.add((2, y))
 
     for point in g.a_star(point_a, point_b):
-        print(point.get_pos())
+        print(point)
 
 if __name__ == '__main__':
     main()

@@ -26,13 +26,13 @@ class Simulation:
         self.y_offset = 0
 
         self.grid = Grid(10, 10)
-        self.wall_rects = []
-        self.path_rects = []
+        self.walls = set()
+        self.path = []
         self.current_mode = "set_start"
-        self.start_cell_rect = None
-        self.end_cell_rect = None
+        self.start_cell = None
+        self.end_cell = None
         self.running = True
-        self.calculated = True
+        self.calculated = False
         self.mouse_grid_pos = (0, 0)
 
 
@@ -54,14 +54,13 @@ class Simulation:
         grid_rect = pygame.Rect(0,0, self.grid.x_size * self.scale, self.grid.y_size * self.scale)
         self.screen.fill(BACKGROUND_COLOR)
         pygame.draw.rect(self.screen, GRID_BACKROUND_COLOR, grid_rect)
-        for rect in self.walls:
-            wall_rect = self.grid
-            pygame.draw.rect(self.screen, WALL_COLOR, rect)
-        for rect in self.path:
-            # TODO: Make method that uhhhhhh ye
-            pygame.draw.rect(self.screen, PATH_COLOR, self.get_rect_grid_pos(rect))
-        pygame.draw.rect(self.screen, START_COLOR, self.start_cell_rect)
-        pygame.draw.rect(self.screen, END_COLOR, self.end_cell_rect)
+        for cell in self.walls:
+            self.draw_cell(cell, WALL_COLOR)
+        for cell in self.path:
+            self.draw_cell(cell, PATH_COLOR)
+        
+        self.draw_cell(self.start_cell, START_COLOR)
+        self.draw_cell(self.end_cell, END_COLOR)
 
         pygame.display.flip()
 
@@ -71,38 +70,42 @@ class Simulation:
             self.handle_events()
             self.logic()
             if not self.calculated:
+                print("drawing")
                 self.draw()
+                self.calculated = True
 
     def logic(self):
-        if not self.calculated and self.start_cell_rect != self.invalid_cell_rect and self.end_cell_rect != self.invalid_cell_rect:
-            start_pos = self.get_rect_grid_pos(self.start_cell_rect)
-            end_pos = self.get_rect_grid_pos(self.end_cell_rect)
-            new_path = self.grid.a_star(start_pos, end_pos)
-            self.path_rects = []
+        if not self.calculated and self.start_cell is not None and self.end_cell is not None:
+            new_path = self.grid.a_star(self.start_cell, self.end_cell)
+            self.path = []
             for cell in new_path:
-                self.path_rects.append(self.create_rect(cell))
+                self.path.append(cell)
 
     def create_rect(self, grid_pos):
         world_pos = self._grid_to_global(grid_pos)
         rect = pygame.Rect(world_pos, (self.scale, self.scale))
         return rect
 
-    def get_rect_grid_pos(self, rect):
-        return self._global_to_grid((rect.left, rect.top))
+    def draw_cell(self, cell_pos, color):
+        if cell_pos is None:
+            return
+        rect = pygame.Rect(self._grid_to_global(cell_pos), (self.scale, self.scale))
+        pygame.draw.rect(self.screen, color, rect)
 
     def delete_at_pos(self, grid_pos):
-        if grid_pos == self.get_rect_grid_pos(self.start_cell_rect):
-            self.start_cell_rect = self.invalid_cell_rect
-            self.path_rects = []
-            self.calculated = True
-        elif grid_pos == self.get_rect_grid_pos(self.end_cell_rect):
-            self.end_cell_rect = self.invalid_cell_rect
-            self.path_rects = []
-            self.calculated = True
+        if grid_pos == self.start_cell:
+            self.start_cell = None
+            self.path = []
+            self.calculated = False
+        elif grid_pos == self.end_cell:
+            self.end_cell = None
+            self.path = []
+            self.calculated = False
         else:
-            for wall in self.wall_rects:
+            for wall in self.walls:
                 if wall == self.mouse_grid_pos:
-                    self.wall_rects.remove(wall)
+                    self.walls.remove(wall)
+                    self.grid.remove_unwalkable_cell(wall)
                     break
 
     def get_rect_world_pos(self, rect : pygame.Rect):
@@ -130,15 +133,15 @@ class Simulation:
                     and 0 <= self.mouse_grid_pos[1] < self.grid.y_size
                 ):
                     if self.current_mode == "set_start":
-                        self.start_cell_rect = self.create_rect(self.mouse_grid_pos)
-                        print(self.start_cell_rect)
+                        self.start_cell = self.mouse_grid_pos
                     elif self.current_mode == "set_end":
-                        self.end_cell_rect = self.create_rect(self.mouse_grid_pos)
-                        print(self.end_cell_rect)
+                        self.end_cell = self.mouse_grid_pos
                     elif self.current_mode == "set_wall":
-                        self.wall_rects.append(self.create_rect(self.mouse_grid_pos))
+                        self.walls.add(self.mouse_grid_pos)
+                        self.grid.add_unwalkable_cell(self.mouse_grid_pos)
                     elif self.current_mode == "remove_wall":
                         self.delete_at_pos(self.mouse_grid_pos)
+                    self.calculated = False
 
 
 def main():

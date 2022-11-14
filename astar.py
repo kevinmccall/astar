@@ -2,7 +2,6 @@ import pygame
 import math
 
 from pygame import mouse
-from pygame.constants import K_NUMLOCKCLEAR
 
 
 class Tile:

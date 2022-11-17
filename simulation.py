@@ -1,6 +1,7 @@
 import pygame
 from kevstar2 import Grid
 import sys
+import time 
 
 # Colors
 START_COLOR = (0, 255, 0)
@@ -70,13 +71,14 @@ class Simulation:
             self.handle_events()
             self.logic()
             if not self.calculated:
-                print("drawing")
                 self.draw()
                 self.calculated = True
 
     def logic(self):
         if not self.calculated and self.start_cell is not None and self.end_cell is not None:
+            start_time = time.time()
             new_path = self.grid.a_star(self.start_cell, self.end_cell)
+            print(f"calculated path in {time.time() - start_time} seconds")
             self.path = []
             for cell in new_path:
                 self.path.append(cell)

@@ -63,13 +63,10 @@ class Grid:
     
     def get_walkable_neighbors(self, cell: Cell) -> list[Cell]:
         neighbors = []
-        for x in range(-1, 2):
-            for y in range(-1, 2):
-                if (x, y) == (0,0):
-                    continue
-                neighbor_cell = Cell(cell.x + x, cell.y + y)
-                if self.is_cell_valid(neighbor_cell) and self.is_cell_walkable(cell):
-                    neighbors.append(neighbor_cell)
+        for adjacent in [(-1,0), (1,0), (0,-1), (0,1)]:
+            neighbor = Cell(adjacent[0] + cell.x, adjacent[1] + cell.y)
+            if self.is_cell_valid(neighbor) and self.is_cell_walkable(cell):
+                neighbors.append(neighbor)
         return neighbors
                 
     def get_distance(self, cell1, cell2):
@@ -98,11 +95,11 @@ class Grid:
             print("tried removing invalid walls")
 
 def main():
-    g = Grid(3,3)
-    point_a = (0, 0)
-    point_b = (2, 2)
+    g = Grid(10, 10)
+    point_a = (0, 2)
+    point_b = (7, 9)
     
-    for y in range(3):
+    for y in range(2, 5):
         g.unwalkable_cells.add((2, y))
 
     for point in g.a_star(point_a, point_b):

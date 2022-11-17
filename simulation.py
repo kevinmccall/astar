@@ -1,7 +1,7 @@
-import pygame
-from kevstar2 import Grid
 import sys
 import time 
+import pygame
+from kevstar2 import Grid
 
 # Colors
 START_COLOR = (0, 255, 0)

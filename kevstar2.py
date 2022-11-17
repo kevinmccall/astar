@@ -44,6 +44,8 @@ class Grid:
         while head != point_b:
             valid_neighbors = self.get_walkable_neighbors(head)
             for neighbor in valid_neighbors:
+                if neighbor in to_check:
+                    continue
                 if neighbor not in exhausted:
                     gcost = self.get_distance(point_a, neighbor)
                     hcost = self.get_distance(neighbor, point_b)
@@ -98,12 +100,9 @@ class Grid:
             print("tried removing invalid walls")
 
 def main():
-    g = Grid(3,3)
+    g = Grid(10,10)
     point_a = (0, 0)
-    point_b = (2, 2)
-    
-    for y in range(3):
-        g.unwalkable_cells.add((2, y))
+    point_b = (8, 3)
 
     for point in g.a_star(point_a, point_b):
         print(point)
